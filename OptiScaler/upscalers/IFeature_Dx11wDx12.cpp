@@ -157,11 +157,21 @@ bool IFeature_Dx11wDx12::ProcessDx11Textures(const NVSDK_NGX_Parameter* InParame
         return false;
     }
 
+    LOG_WARN("TEMP ProcessDx11: commandFrame {}, allocatorFenceValue {}, fence {:p}, allocator {:p}, list {:p}",
+             commandFrame, Dx12CommandAllocatorFenceValue[commandFrame], (void*) Dx12Fence,
+             (void*) Dx12CommandAllocator[commandFrame], (void*) Dx12CommandList[commandFrame]);
+
     const auto allocatorFenceValue = Dx12CommandAllocatorFenceValue[commandFrame];
+
+    LOG_WARN("TEMP ProcessDx11: before GetCompletedValue");
     const auto completedBefore = Dx12Fence->GetCompletedValue();
+    LOG_WARN("TEMP ProcessDx11: after GetCompletedValue = {}", completedBefore);
+
     if (allocatorFenceValue != 0 && completedBefore < allocatorFenceValue)
     {
+        LOG_WARN("TEMP ProcessDx11: entering allocator fence wait");
         result = Dx12Fence->SetEventOnCompletion(allocatorFenceValue, Dx12FenceEvent);
+        LOG_WARN("TEMP ProcessDx11: SetEventOnCompletion result {:X}", (UINT) result);
         if (result != S_OK)
         {
             LOG_ERROR("SetEventOnCompletion error for allocator {} fence {}: {:X}", commandFrame, allocatorFenceValue,
@@ -171,6 +181,7 @@ bool IFeature_Dx11wDx12::ProcessDx11Textures(const NVSDK_NGX_Parameter* InParame
 
         const auto waitStart = Util::MillisecondsNow();
         const auto waitResult = WaitForSingleObject(Dx12FenceEvent, 5000);
+        LOG_WARN("TEMP ProcessDx11: allocator wait result {:X}", (UINT) waitResult);
         const auto waitMs = Util::MillisecondsNow() - waitStart;
         const auto completedAfter = Dx12Fence->GetCompletedValue();
 
@@ -198,7 +209,9 @@ bool IFeature_Dx11wDx12::ProcessDx11Textures(const NVSDK_NGX_Parameter* InParame
         }
     }
 
+    LOG_WARN("TEMP ProcessDx11: before allocator Reset");
     result = Dx12CommandAllocator[commandFrame]->Reset();
+    LOG_WARN("TEMP ProcessDx11: after allocator Reset {:X}", (UINT) result);
     if (result != S_OK)
     {
         LOG_ERROR("CommandAllocator Reset error for frame {}, allocator fence {}, completed {}: {:X}", commandFrame,
@@ -206,13 +219,16 @@ bool IFeature_Dx11wDx12::ProcessDx11Textures(const NVSDK_NGX_Parameter* InParame
         return false;
     }
 
+    LOG_WARN("TEMP ProcessDx11: before command list Reset");
     result = Dx12CommandList[commandFrame]->Reset(Dx12CommandAllocator[commandFrame], nullptr);
+    LOG_WARN("TEMP ProcessDx11: after command list Reset {:X}", (UINT) result);
     if (result != S_OK)
     {
         LOG_ERROR("CommandList Reset error: {:X}", (UINT) result);
         return false;
     }
 
+    LOG_WARN("TEMP ProcessDx11: reset section complete");
     LOG_DEBUG("Shared handles prepared and synchronized by Dx11WithDx12 cache, frameKey: {}", cacheFrameKey);
     return true;
 }
