@@ -209,14 +209,21 @@ bool IFeature_Dx11wDx12::ProcessDx11Textures(const NVSDK_NGX_Parameter* InParame
         }
     }
 
-    LOG_WARN("TEMP ProcessDx11: before allocator Reset");
-    result = Dx12CommandAllocator[commandFrame]->Reset();
-    LOG_WARN("TEMP ProcessDx11: after allocator Reset {:X}", (UINT) result);
-    if (result != S_OK)
+    if (allocatorFenceValue != 0)
     {
-        LOG_ERROR("CommandAllocator Reset error for frame {}, allocator fence {}, completed {}: {:X}", commandFrame,
-                  allocatorFenceValue, Dx12Fence->GetCompletedValue(), (UINT) result);
-        return false;
+        LOG_WARN("TEMP ProcessDx11: before allocator Reset");
+        result = Dx12CommandAllocator[commandFrame]->Reset();
+        LOG_WARN("TEMP ProcessDx11: after allocator Reset {:X}", (UINT) result);
+        if (result != S_OK)
+        {
+            LOG_ERROR("CommandAllocator Reset error for frame {}, allocator fence {}, completed {}: {:X}", commandFrame,
+                      allocatorFenceValue, Dx12Fence->GetCompletedValue(), (UINT) result);
+            return false;
+        }
+    }
+    else
+    {
+        LOG_WARN("TEMP ProcessDx11: skipping allocator Reset for never-submitted slot {}", commandFrame);
     }
 
     LOG_WARN("TEMP ProcessDx11: before command list Reset");
