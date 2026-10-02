@@ -212,12 +212,20 @@ bool Dx11WithDx12::SyncDx11ToDx12()
 {
     std::lock_guard<std::mutex> lock(SyncMutex);
 
+    LOG_WARN("TEMP Sync11to12: enter");
     if (!EnsureSyncResourcesLocked())
+    {
+        LOG_WARN("TEMP Sync11to12: EnsureSyncResourcesLocked FAILED");
         return false;
+    }
+    LOG_WARN("TEMP Sync11to12: sync resources OK");
 
     const auto fenceValue = TextureCopyFenceValue++;
 
+    LOG_WARN("TEMP Sync11to12: before DX11 Signal fence {}", fenceValue);
     auto result = Dx11DeviceContext->Signal(Dx11FenceTextureCopy, fenceValue);
+    LOG_WARN("TEMP Sync11to12: after DX11 Signal result {:X}", (UINT)result);
+
     if (result != S_OK)
     {
         LOG_ERROR("Dx11WithDx12 Dx11 signal failed for fence {}: {:X}", fenceValue, (UINT) result);
@@ -227,7 +235,10 @@ bool Dx11WithDx12::SyncDx11ToDx12()
     // Games flush should be enough, so disabled for now
     // Dx11DeviceContext->Flush();
 
+    LOG_WARN("TEMP Sync11to12: before DX12 Wait fence {}", fenceValue);
     result = Dx12CommandQueue->Wait(Dx12FenceTextureCopy, fenceValue);
+    LOG_WARN("TEMP Sync11to12: after DX12 Wait result {:X}", (UINT)result);
+
     if (result != S_OK)
     {
         LOG_ERROR("Dx11WithDx12 Dx12 wait failed for fence {}: {:X}", fenceValue, (UINT) result);
@@ -235,6 +246,7 @@ bool Dx11WithDx12::SyncDx11ToDx12()
         return false;
     }
 
+    LOG_WARN("TEMP Sync11to12: done");
     return true;
 }
 
