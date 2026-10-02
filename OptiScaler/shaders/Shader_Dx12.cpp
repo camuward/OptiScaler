@@ -419,6 +419,9 @@ bool Shader_Dx12::SetupRootSignature(ID3D12Device* InDevice, uint32_t srcCount, 
                                      uint32_t rtvCount, uint32_t samplerCount, uint32_t staticSamplerCount,
                                      const D3D12_STATIC_SAMPLER_DESC* pStaticSamplers, D3D12_ROOT_SIGNATURE_FLAGS flags)
 {
+    LOG_WARN("TEMP SetupRootSignature [{}]: enter, device {:p}, existing root {:p}, ranges {}", _name,
+             (void*) InDevice, (void*) _rootSignature, _descriptorRanges.size());
+
     if (_init)
     {
         LOG_ERROR("Already inited");
@@ -454,7 +457,10 @@ bool Shader_Dx12::SetupRootSignature(ID3D12Device* InDevice, uint32_t srcCount, 
 
     do
     {
+        LOG_WARN("TEMP SetupRootSignature [{}]: before D3D12SerializeVersionedRootSignature", _name);
         auto hr = D3D12SerializeVersionedRootSignature(&rootSigDesc, &signatureBlob, &errorBlob);
+        LOG_WARN("TEMP SetupRootSignature [{}]: after D3D12SerializeVersionedRootSignature {:X}, blob {:p}", _name,
+                 (UINT) hr, (void*) signatureBlob.Get());
 
         if (FAILED(hr))
         {
@@ -462,8 +468,12 @@ bool Shader_Dx12::SetupRootSignature(ID3D12Device* InDevice, uint32_t srcCount, 
             break;
         }
 
+        LOG_WARN("TEMP SetupRootSignature [{}]: before CreateRootSignature, blob size {}", _name,
+                 signatureBlob->GetBufferSize());
         hr = InDevice->CreateRootSignature(0, signatureBlob->GetBufferPointer(), signatureBlob->GetBufferSize(),
                                            IID_PPV_ARGS(&_rootSignature));
+        LOG_WARN("TEMP SetupRootSignature [{}]: after CreateRootSignature {:X}, root {:p}", _name, (UINT) hr,
+                 (void*) _rootSignature);
 
         if (FAILED(hr))
         {
@@ -479,6 +489,7 @@ bool Shader_Dx12::SetupRootSignature(ID3D12Device* InDevice, uint32_t srcCount, 
         return false;
     }
 
+    LOG_WARN("TEMP SetupRootSignature [{}]: success root {:p}", _name, (void*) _rootSignature);
     return true;
 }
 
