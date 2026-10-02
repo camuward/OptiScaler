@@ -9,7 +9,7 @@
 #include <d3d11_4.h>
 #include <dxgi1_6.h>
 
-#define DX11WDX12_COMMAND_BUFFER_COUNT 1
+#define DX11WDX12_COMMAND_BUFFER_COUNT 3
 
 class IFeature_Dx11wDx12 : public virtual IFeature_Dx11
 {

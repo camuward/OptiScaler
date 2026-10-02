@@ -108,7 +108,7 @@ bool IFeature_Dx11wDx12::ProcessDx11Textures(const NVSDK_NGX_Parameter* InParame
 {
     HRESULT result;
 
-    const auto commandFrame = (UINT) (_frameCount % DX11WDX12_COMMAND_BUFFER_COUNT);
+    const auto commandFrame = 0u;
     const auto resourceFrame = (UINT) (_frameCount % DX11_WITH_DX12_CACHED_FRAMES);
     const auto cacheFrameKey = Dx11WithDx12::NextUpscalerFrameId();
     Dx11WithDx12::SetUpscalerFrameIndex(resourceFrame);
@@ -318,7 +318,7 @@ bool IFeature_Dx11wDx12::Evaluate(ID3D11DeviceContext* InDeviceContext, NVSDK_NG
     if (dc != nullptr)
         dc->Release();
 
-    const auto commandFrame = (UINT) (_frameCount % DX11WDX12_COMMAND_BUFFER_COUNT);
+    const auto commandFrame = 0u;
     const auto resourceFrame = (UINT) (_frameCount % DX11_WITH_DX12_CACHED_FRAMES);
     auto cmdList = Dx12CommandList[commandFrame];
 
