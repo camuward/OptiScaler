@@ -176,9 +176,12 @@ RCAS_Dx12::RCAS_Dx12(std::string InName, ID3D12Device* InDevice) : Shader_Dx12(I
     D3D12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Buffer(sizeof(InternalConstantsDA));
     auto heapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
 
+    LOG_WARN("TEMP RCAS ctor: before CreateCommittedResource, device {:p}", (void*) InDevice);
     auto result =
         InDevice->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_GENERIC_READ,
                                           nullptr, IID_PPV_ARGS(&_constantBuffer));
+    LOG_WARN("TEMP RCAS ctor: after CreateCommittedResource {:X}, buffer {:p}", (UINT) result,
+             (void*) _constantBuffer);
 
     if (result != S_OK)
     {
@@ -186,27 +189,35 @@ RCAS_Dx12::RCAS_Dx12(std::string InName, ID3D12Device* InDevice) : Shader_Dx12(I
         return;
     }
 
+    LOG_WARN("TEMP RCAS ctor: before base compute pipeline");
     if (!CreateComputePipeline(InDevice, &_pipelineState, rcas_cso, sizeof(rcas_cso), rcasCode.c_str()))
     {
         LOG_ERROR("[{0}] Failed to create compute pipeline", _name);
         return;
     }
+    LOG_WARN("TEMP RCAS ctor: after base compute pipeline {:p}", (void*) _pipelineState);
 
+    LOG_WARN("TEMP RCAS ctor: before DA compute pipeline");
     if (!CreateComputePipeline(InDevice, &_pipelineStateDA, da_rcas_sharpen_cso, sizeof(da_rcas_sharpen_cso),
                                daRcasSharpenCode.c_str()))
     {
         LOG_ERROR("[{0}] Failed to create compute pipeline DA", _name);
         return;
     }
+    LOG_WARN("TEMP RCAS ctor: after DA compute pipeline {:p}", (void*) _pipelineStateDA);
 
+    LOG_WARN("TEMP RCAS ctor: before DASDA compute pipeline");
     if (!CreateComputePipeline(InDevice, &_pipelineStateDASDA, da_das_sharpen_cso, sizeof(da_das_sharpen_cso),
                                dasDASharpenCode.c_str()))
     {
         LOG_ERROR("[{0}] Failed to create compute pipeline DAS DA", _name);
         return;
     }
+    LOG_WARN("TEMP RCAS ctor: after DASDA compute pipeline {:p}", (void*) _pipelineStateDASDA);
 
+    LOG_WARN("TEMP RCAS ctor: before InitHeaps");
     _init = InitHeaps(InDevice, _frameHeaps, RCAS_NUM_OF_HEAPS);
+    LOG_WARN("TEMP RCAS ctor: after InitHeaps {}", _init);
 }
 
 RCAS_Dx12::~RCAS_Dx12()
