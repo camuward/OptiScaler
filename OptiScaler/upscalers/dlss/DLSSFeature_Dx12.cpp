@@ -139,5 +139,9 @@ DLSSFeatureDx12::~DLSSFeatureDx12()
         return;
 
     if (NVNGXProxy::D3D12_ReleaseFeature() != nullptr && _p_dlssHandle != nullptr)
-        NVNGXProxy::D3D12_ReleaseFeature()(_p_dlssHandle);
+    {
+        LOG_WARN("TEMP DLSSFeatureDx12 dtor: intentionally leaking D3D12 DLSS feature handle {:p}",
+                 (void*) _p_dlssHandle);
+        _p_dlssHandle = nullptr;
+    }
 }
