@@ -118,18 +118,30 @@ void IFeature_Dx11wDx12::ReleaseSharedResources()
                  (void*) Dx12CommandList[i], (void*) Dx12CommandAllocator[i]);
         SAFE_RELEASE(Dx12CommandList[i]);
         LOG_WARN("TEMP ReleaseSharedResources: slot {} list released", i);
-        SAFE_RELEASE(Dx12CommandAllocator[i]);
-        LOG_WARN("TEMP ReleaseSharedResources: slot {} allocator released", i);
+        if (Dx12CommandAllocator[i] != nullptr)
+        {
+            LOG_WARN("TEMP ReleaseSharedResources: intentionally leaking slot {} allocator {:p}", i,
+                     (void*) Dx12CommandAllocator[i]);
+            Dx12CommandAllocator[i] = nullptr;
+        }
+        else
+        {
+            LOG_WARN("TEMP ReleaseSharedResources: slot {} allocator already null", i);
+        }
         Dx12CommandAllocatorFenceValue[i] = 0;
     }
 
+    LOG_WARN("TEMP ReleaseSharedResources: before fence release {:p}", (void*) Dx12Fence);
     SAFE_RELEASE(Dx12Fence);
+    LOG_WARN("TEMP ReleaseSharedResources: after fence release");
     Dx12FenceValue = 0;
 
     if (Dx12FenceEvent)
     {
+        LOG_WARN("TEMP ReleaseSharedResources: before fence event close {:p}", (void*) Dx12FenceEvent);
         CloseHandle(Dx12FenceEvent);
         Dx12FenceEvent = nullptr;
+        LOG_WARN("TEMP ReleaseSharedResources: after fence event close");
     }
 
     // SAFE_RELEASE(Dx12Device);
