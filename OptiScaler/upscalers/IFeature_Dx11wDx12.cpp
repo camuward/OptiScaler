@@ -31,7 +31,9 @@ bool IFeature_Dx11wDx12::CreateD3D12Objects()
 {
     HRESULT result;
 
-    for (size_t i = 0; i < DX11WDX12_COMMAND_BUFFER_COUNT; i++)
+    // TEMP: keep the original 3-slot object layout, but only create slot 0.
+    // Slots 1/2 crash on first Reset under this DX11->DX12 Wine/VKD3D path.
+    for (size_t i = 0; i < 1; i++)
     {
         if (Dx12CommandAllocator[i] == nullptr)
         {
@@ -87,8 +89,12 @@ void IFeature_Dx11wDx12::ReleaseSharedResources()
 {
     for (size_t i = 0; i < DX11WDX12_COMMAND_BUFFER_COUNT; i++)
     {
+        LOG_WARN("TEMP ReleaseSharedResources: slot {} list {:p} allocator {:p}", i,
+                 (void*) Dx12CommandList[i], (void*) Dx12CommandAllocator[i]);
         SAFE_RELEASE(Dx12CommandList[i]);
+        LOG_WARN("TEMP ReleaseSharedResources: slot {} list released", i);
         SAFE_RELEASE(Dx12CommandAllocator[i]);
+        LOG_WARN("TEMP ReleaseSharedResources: slot {} allocator released", i);
         Dx12CommandAllocatorFenceValue[i] = 0;
     }
 
