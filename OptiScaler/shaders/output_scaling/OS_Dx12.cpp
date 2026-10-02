@@ -125,6 +125,8 @@ OS_Dx12::OS_Dx12(std::string InName, ID3D12Device* InDevice, bool InUpsample)
     }
 
     LOG_DEBUG("{0} start!", _name);
+    LOG_WARN("TEMP: bypassing OS_Dx12 initialization");
+    return;
 
     CD3DX12_STATIC_SAMPLER_DESC sampler(0);
     sampler.Filter = D3D12_FILTER_MIN_MAG_LINEAR_MIP_POINT;
