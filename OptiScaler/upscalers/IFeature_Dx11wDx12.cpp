@@ -87,6 +87,31 @@ bool IFeature_Dx11wDx12::CreateD3D12Objects()
 
 void IFeature_Dx11wDx12::ReleaseSharedResources()
 {
+    if (Dx12Fence != nullptr)
+    {
+        const auto requiredFence = Dx12FenceValue;
+        const auto completedBefore = Dx12Fence->GetCompletedValue();
+        LOG_WARN("TEMP ReleaseSharedResources: feature fence required {}, completed {}", requiredFence,
+                 completedBefore);
+
+        if (requiredFence != 0 && completedBefore < requiredFence)
+        {
+            const auto setResult = Dx12Fence->SetEventOnCompletion(requiredFence, Dx12FenceEvent);
+            LOG_WARN("TEMP ReleaseSharedResources: SetEventOnCompletion result {:X}", (UINT) setResult);
+
+            if (setResult == S_OK)
+            {
+                const auto waitResult = WaitForSingleObject(Dx12FenceEvent, 5000);
+                LOG_WARN("TEMP ReleaseSharedResources: fence wait result {:X}, completed {}", (UINT) waitResult,
+                         Dx12Fence->GetCompletedValue());
+            }
+            else
+            {
+                LOG_ERROR("TEMP ReleaseSharedResources: SetEventOnCompletion failed: {:X}", (UINT) setResult);
+            }
+        }
+    }
+
     for (size_t i = 0; i < DX11WDX12_COMMAND_BUFFER_COUNT; i++)
     {
         LOG_WARN("TEMP ReleaseSharedResources: slot {} list {:p} allocator {:p}", i,
